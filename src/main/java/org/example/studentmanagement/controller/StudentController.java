@@ -7,6 +7,7 @@ import jakarta.json.JsonReader;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebInitParam;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +26,14 @@ import java.util.UUID;
 
 import static java.lang.Class.forName;
 
-@WebServlet(urlPatterns = "/student")
+@WebServlet(urlPatterns = "/student")/*initParams =
+        {
+                @WebInitParam(name = "driver-class",value = "com.mysql.cj.jdbc.Driver"),
+                @WebInitParam(name = "dbURL",value = "jdbc:mysql://localhost:3306/AADstmgt"),
+                @WebInitParam(name = "dbUserName",value = "root"),
+                @WebInitParam(name = "dbPassword",value = "Ijse@1234")
+        })*/
+
 public class StudentController  extends HttpServlet {
 
     Connection connection;
@@ -42,6 +50,13 @@ public class StudentController  extends HttpServlet {
             var url = getServletContext().getInitParameter("dbURL");
             var username = getServletContext().getInitParameter("dbUserName");
             var password = getServletContext().getInitParameter("dbPassword");
+
+            // configuration context(cookie jar)
+           /* var driverClass = getServletConfig().InitParameter("driver-class");
+            var url = getServletConfig().getInitParameter("dbURL");
+            var username = getServletConfig().getInitParameter("dbUserName");
+            var password = getServletConfig().getInitParameter("dbPassword");*/
+
             Class.forName(driverClass);
             this.connection = DriverManager.getConnection(url,username,password);
         }catch (ClassNotFoundException | SQLException e){
