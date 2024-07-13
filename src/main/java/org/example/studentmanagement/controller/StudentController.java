@@ -1,18 +1,14 @@
 package org.example.studentmanagement.controller;
 
-import jakarta.json.Json;
-import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebInitParam;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.studentmanagement.dto.StudentDTO;
+import org.example.studentmanagement.persistance.impl.StudentDAOImpl;
 import org.example.studentmanagement.utill.GenerateId;
 
 import java.io.IOException;
@@ -20,13 +16,11 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 import static java.lang.Class.forName;
 
-@WebServlet(urlPatterns = "/student")/*initParams =
+@WebServlet(urlPatterns = "/student")/*
+initParams =
         {
                 @WebInitParam(name = "driver-class",value = "com.mysql.cj.jdbc.Driver"),
                 @WebInitParam(name = "dbURL",value = "jdbc:mysql://localhost:3306/AADstmgt"),
@@ -67,51 +61,31 @@ public class StudentController  extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-       //Todo:get all students
-        var studentDTO = new StudentDTO();
-        var StudentId = req.getParameter("id");
-
-        try(var writer = resp.getWriter()){
-            PreparedStatement pstm = connection.prepareStatement(GET_STUDENTS);
-            pstm.setString(1,StudentId);
-            var resultSet = pstm.executeQuery();
-            while (resultSet.next()){
-                studentDTO.setId(resultSet.getString("id"));
-                studentDTO.setName(resultSet.getString("name"));
-                studentDTO.setEmail(resultSet.getString("email"));
-                studentDTO.setCity(resultSet.getString("city"));
-                studentDTO.setLevel(resultSet.getString("level"));
-                writer.write(studentDTO.toString());
-            }
-            System.out.println(studentDTO);
+        var studentId = req.getParameter("id");
+        var studentDAO = new StudentDAOImpl();
+        try{
+            var writer = resp.getWriter();
+            var student = studentDAO.getStudent(studentId,connection);
+            //writer.write(student.toString());
+            System.out.println(student);
             resp.setContentType("application/json");
             var jsonb = JsonbBuilder.create();
-            jsonb.toJson(studentDTO,resp.getWriter());
+            jsonb.toJson(student,writer);
 
-        } catch (SQLException e) {
+        }catch (SQLException e){
             throw new RuntimeException(e);
+
         }
-
-
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        try (var writer = resp.getWriter()){
-            PreparedStatement pstm = connection.prepareStatement(SAVE_STUDENT);
-
+        try (var writer = resp.getWriter()) {
             Jsonb jsonb = JsonbBuilder.create();
             StudentDTO studentDTO = jsonb.fromJson(req.getReader(), StudentDTO.class);
-            pstm.setString(1, GenerateId.generateId());
-            pstm.setString(2,studentDTO.getName());
-            pstm.setString(3,studentDTO.getEmail());
-            pstm.setString(4,studentDTO.getCity());
-            pstm.setString(5,studentDTO.getLevel());
-           if(pstm.executeUpdate() > 0){
-               writer.write("Student Saved");
-           }else{
-               writer.write("Student Not Saved");
-           }
+            studentDTO.setId(GenerateId.generateId());
+            var StudentDAO = new StudentDAOImpl();
+            writer.write(StudentDAO.saveStudent(studentDTO,connection));
         }catch (Exception e){
             e.printStackTrace();
         }
