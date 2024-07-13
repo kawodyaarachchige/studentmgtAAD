@@ -79,7 +79,7 @@ public class StudentDAOImpl implements StudentDAO {
             pstm.setString(3,student.getEmail());
             pstm.setString(4,student.getLevel());
             pstm.setString(5,studentId);
-            if(pstm.executeUpdate() > 0){
+            if(pstm.executeUpdate() != 0){
                 return true;
             }else{
                 return false;

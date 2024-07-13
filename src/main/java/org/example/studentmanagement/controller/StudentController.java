@@ -109,39 +109,21 @@ public class StudentController  extends HttpServlet {
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-      //  Todo:update student
 
-        /*if (!req.getContentType().toLowerCase().startsWith("application/json") || req.getContentType() == null) {
-            resp.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-            return;
-        }
-        Jsonb jsonb = JsonbBuilder.create();
-        StudentDTO studentDTO = jsonb.fromJson(req.getReader(), StudentDTO.class);
+        try(var writer = resp.getWriter()) {
+            Jsonb jsonb = JsonbBuilder.create();
+            StudentDTO studentDTO = jsonb.fromJson(req.getReader(), StudentDTO.class);
+            var StudentDAO = new StudentDAOImpl();
 
-        var id = req.getParameter("id");
-        if (id == null) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
-        }
-
-        try (var writer = resp.getWriter()) {
-            var ps = connection.prepareStatement(UPDATE_STUDENT);
-            ps.setString(1, studentDTO.getName());
-            ps.setString(2, studentDTO.getCity());
-            ps.setString(3, studentDTO.getEmail());
-            ps.setString(4, studentDTO.getLevel());
-            ps.setString(5, id);
-            if (ps.executeUpdate() != 0) {
+            if(StudentDAO.updateStudent(studentDTO.getId(),studentDTO,connection)){
                 writer.write("Student Updated");
-                resp.setStatus(HttpServletResponse.SC_OK);
-            } else {
+            }else {
                 writer.write("Student Not Updated");
-                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
             }
 
-        } catch (SQLException e) {
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            throw new RuntimeException(e);
-        }*/
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 
