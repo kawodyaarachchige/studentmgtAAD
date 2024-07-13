@@ -57,11 +57,35 @@ public class StudentDAOImpl implements StudentDAO {
 
     @Override
     public boolean deleteStudent(String studentId, Connection connection) {
-        return false;
+     try{
+         var pstm = connection.prepareStatement(DELETE_STUDENT);
+         pstm.setString(1,studentId);
+         if(pstm.executeUpdate() > 0){
+             return true;
+         }else{
+             return false;
+         }
+     }catch (Exception e){
+         throw new RuntimeException();
+     }
     }
 
     @Override
     public boolean updateStudent(String studentId, StudentDTO student, Connection connection) {
-        return false;
+        try{
+            var pstm = connection.prepareStatement(UPDATE_STUDENT);
+            pstm.setString(1,student.getName());
+            pstm.setString(2,student.getCity());
+            pstm.setString(3,student.getEmail());
+            pstm.setString(4,student.getLevel());
+            pstm.setString(5,studentId);
+            if(pstm.executeUpdate() > 0){
+                return true;
+            }else{
+                return false;
+            }
+        }catch (Exception e){
+            throw new RuntimeException();
+        }
     }
 }

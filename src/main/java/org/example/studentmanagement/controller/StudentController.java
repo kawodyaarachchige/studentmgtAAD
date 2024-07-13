@@ -93,12 +93,25 @@ public class StudentController  extends HttpServlet {
 
     }
 
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+        try(var writer = resp.getWriter()) {
+            var id = req.getParameter("id");
+            var StudentDAO = new StudentDAOImpl();
+            writer.write(String.valueOf(StudentDAO.deleteStudent(id,connection)));
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
       //  Todo:update student
 
-        if (!req.getContentType().toLowerCase().startsWith("application/json") || req.getContentType() == null) {
+        /*if (!req.getContentType().toLowerCase().startsWith("application/json") || req.getContentType() == null) {
             resp.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
             return;
         }
@@ -128,28 +141,9 @@ public class StudentController  extends HttpServlet {
         } catch (SQLException e) {
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             throw new RuntimeException(e);
-        }
+        }*/
     }
 
 
-    @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
-     //   Todo:delete student
-
-        try(var writer = resp.getWriter()) {
-            PreparedStatement pstm = connection.prepareStatement(DELETE_STUDENT);
-            pstm.setString(1,req.getParameter("id"));
-            if (pstm.executeUpdate() != 0) {
-                resp.getWriter().write("Student Deleted");
-                resp.setStatus(HttpServletResponse.SC_OK);
-            } else {
-                writer.write("Student Not Deleted");
-                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
 }
