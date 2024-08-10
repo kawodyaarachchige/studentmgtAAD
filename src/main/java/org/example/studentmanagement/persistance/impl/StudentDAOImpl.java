@@ -9,7 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class StudentDAOImpl implements StudentDAO {
+public final class StudentDAOImpl implements StudentDAO {
     static String SAVE_STUDENT = "INSERT INTO student (id,name,city,email,level) VALUES (?,?,?,?,?)";
     static String GET_STUDENT = "SELECT * FROM student WHERE id=?";
     static String UPDATE_STUDENT = "UPDATE student SET name=?,city=?,email=?,level=? WHERE id=?";
@@ -36,7 +36,7 @@ public class StudentDAOImpl implements StudentDAO {
     }
 
     @Override
-    public String saveStudent(StudentDTO studentDTO, Connection connection) {
+    public boolean saveStudent(StudentDTO studentDTO, Connection connection) {
         try {
             var pstm = connection.prepareStatement(SAVE_STUDENT);
             pstm.setString(1, GenerateId.generateId());
@@ -45,9 +45,9 @@ public class StudentDAOImpl implements StudentDAO {
             pstm.setString(4,studentDTO.getCity());
             pstm.setString(5,studentDTO.getLevel());
             if(pstm.executeUpdate() > 0){
-                return "Student Saved";
+                return true;
             }else{
-                return "Student Not Saved";
+                return false;
             }
         }catch (Exception e){
             throw new RuntimeException();
@@ -57,17 +57,14 @@ public class StudentDAOImpl implements StudentDAO {
 
     @Override
     public boolean deleteStudent(String studentId, Connection connection) {
-     try{
-         var pstm = connection.prepareStatement(DELETE_STUDENT);
-         pstm.setString(1,studentId);
-         if(pstm.executeUpdate() > 0){
-             return true;
-         }else{
-             return false;
-         }
-     }catch (Exception e){
-         throw new RuntimeException();
-     }
+        try {
+            var ps = connection.prepareStatement(DELETE_STUDENT);
+            ps.setString(1, studentId);
+            return ps.executeUpdate() != 0;
+        }catch (SQLException e){
+            throw new RuntimeException();
+        }
+
     }
 
     @Override

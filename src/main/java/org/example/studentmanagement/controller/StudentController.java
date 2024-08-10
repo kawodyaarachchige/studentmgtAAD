@@ -1,5 +1,6 @@
 package org.example.studentmanagement.controller;
 
+import jakarta.json.JsonException;
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
 import jakarta.servlet.ServletException;
@@ -62,32 +63,41 @@ public class StudentController  extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         var studentId = req.getParameter("id");
-        var studentDAO = new StudentDAOImpl();
-        try{
-            var writer = resp.getWriter();
-            var student = studentDAO.getStudent(studentId,connection);
-            //writer.write(student.toString());
+        var studentDao = new StudentDAOImpl();
+        try (var writer = resp.getWriter()){
+            var student = studentDao.getStudent(studentId, connection);
             System.out.println(student);
             resp.setContentType("application/json");
             var jsonb = JsonbBuilder.create();
             jsonb.toJson(student,writer);
-
-        }catch (SQLException e){
+        } catch (SQLException e) {
             throw new RuntimeException(e);
-
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        try (var writer = resp.getWriter()) {
+        if(!req.getContentType().toLowerCase().startsWith("application/json")|| req.getContentType() == null){
+            //send error
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+        }
+        // try-with-resource used to implicitly close the resource
+        try (var writer = resp.getWriter()){
             Jsonb jsonb = JsonbBuilder.create();
-            StudentDTO studentDTO = jsonb.fromJson(req.getReader(), StudentDTO.class);
+            StudentDTO studentDTO = jsonb.fromJson(req.getReader(), StudentDTO.class);//read json from request and convert to StudentDTO
             studentDTO.setId(GenerateId.generateId());
-            var StudentDAO = new StudentDAOImpl();
-            writer.write(StudentDAO.saveStudent(studentDTO,connection));
-        }catch (Exception e){
-            e.printStackTrace();
+            var studentDAO = new StudentDAOImpl();
+            if (studentDAO.saveStudent(studentDTO, connection)){
+                writer.write("Student saved successfully");
+                resp.setStatus(HttpServletResponse.SC_CREATED);
+            }else {
+                writer.write("Save student failed");
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            }
+
+        } catch (JsonException e) {
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            throw new RuntimeException(e);
         }
 
 
@@ -95,29 +105,37 @@ public class StudentController  extends HttpServlet {
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
-        try(var writer = resp.getWriter()) {
-            var id = req.getParameter("id");
-            var StudentDAO = new StudentDAOImpl();
-            writer.write(String.valueOf(StudentDAO.deleteStudent(id,connection)));
-
-        }catch (Exception e){
-            e.printStackTrace();
+        var studentId= req.getParameter("id");
+        try (var writer = resp.getWriter()){ // convert to json(MIME type) type to object (deserialization) / serialization mean to convert object to json or MIME types
+            var studentDAO = new StudentDAOImpl();
+            if(studentDAO.deleteStudent(studentId, connection)){
+                writer.write("Student Deleted Successfully");
+                resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            }else {
+                resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                writer.write("Delete Failed");
+            }
+        } catch (Exception e) {
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            throw new RuntimeException(e);
         }
     }
 
-
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
+        if(!req.getContentType().toLowerCase().startsWith("application/json")|| req.getContentType() == null){
+            //send error
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);}
         try(var writer = resp.getWriter()) {
             Jsonb jsonb = JsonbBuilder.create();
             StudentDTO studentDTO = jsonb.fromJson(req.getReader(), StudentDTO.class);
             var StudentDAO = new StudentDAOImpl();
 
             if(StudentDAO.updateStudent(studentDTO.getId(),studentDTO,connection)){
-                writer.write("Student Updated");
+                writer.write("Student Updated Successfully");
+               resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
             }else {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND);
                 writer.write("Student Not Updated");
             }
 
