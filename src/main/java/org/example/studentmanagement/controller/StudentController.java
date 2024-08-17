@@ -12,6 +12,9 @@ import org.example.studentmanagement.dto.StudentDTO;
 import org.example.studentmanagement.persistance.impl.StudentDAOImpl;
 import org.example.studentmanagement.utill.GenerateId;
 
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -41,10 +44,10 @@ public class StudentController  extends HttpServlet {
     public void init() throws ServletException {
         try {
 
-            var driverClass = getServletContext().getInitParameter("driver-class");
+            /*var driverClass = getServletContext().getInitParameter("driver-class");
             var url = getServletContext().getInitParameter("dbURL");
             var username = getServletContext().getInitParameter("dbUserName");
-            var password = getServletContext().getInitParameter("dbPassword");
+            var password = getServletContext().getInitParameter("dbPassword");*/
 
             // configuration context(cookie jar)
            /* var driverClass = getServletConfig().InitParameter("driver-class");
@@ -52,10 +55,16 @@ public class StudentController  extends HttpServlet {
             var username = getServletConfig().getInitParameter("dbUserName");
             var password = getServletConfig().getInitParameter("dbPassword");*/
 
-            Class.forName(driverClass);
-            this.connection = DriverManager.getConnection(url,username,password);
-        }catch (ClassNotFoundException | SQLException e){
-            e.printStackTrace();
+          /*  Class.forName(driverClass);
+            this.connection = DriverManager.getConnection(url,username,password);*/
+            var ctx = new InitialContext();
+            DataSource pool =(DataSource) ctx.lookup("java:/comp/env/jdbc/AADstmgt");
+            this.connection = pool.getConnection();
+
+        } catch (NamingException e) {
+            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
