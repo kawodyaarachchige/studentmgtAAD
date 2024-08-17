@@ -44,6 +44,7 @@ public class StudentController  extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
+        //loglevel
         logger.info("initializing student controller with call init method");
         try {
 
@@ -66,9 +67,12 @@ public class StudentController  extends HttpServlet {
             this.connection = pool.getConnection();
 
         } catch (NamingException e) {
+            logger.error("NamingException",e);
             throw new RuntimeException(e);
         } catch (SQLException e) {
+            logger.error("SQLException",e);
             throw new RuntimeException(e);
+
         }
     }
 
@@ -90,6 +94,7 @@ public class StudentController  extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        logger.debug("doPost called");
         if(!req.getContentType().toLowerCase().startsWith("application/json")|| req.getContentType() == null){
             //send error
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST);

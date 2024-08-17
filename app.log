@@ -1,0 +1,2 @@
+10:48:23.899 [RMI TCP Connection(2)-127.0.0.1] INFO  o.e.s.controller.StudentController -- initializing student controller with call init method
+11:01:25.645 [RMI TCP Connection(2)-127.0.0.1] INFO  o.e.s.controller.StudentController -- initializing student controller with call init method
