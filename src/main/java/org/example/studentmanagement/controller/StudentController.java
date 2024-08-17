@@ -46,6 +46,7 @@ public class StudentController  extends HttpServlet {
     public void init() throws ServletException {
         //loglevel
         logger.info("initializing student controller with call init method");
+        logger.trace("init called");
         try {
 
             /*var driverClass = getServletContext().getInitParameter("driver-class");
@@ -64,7 +65,9 @@ public class StudentController  extends HttpServlet {
 
             var ctx = new InitialContext();
             DataSource pool =(DataSource) ctx.lookup("java:/comp/env/jdbc/AADstmgt");
+            logger.trace("connection pool created");
             this.connection = pool.getConnection();
+            logger.trace("connection initialized");
 
         } catch (NamingException e) {
             logger.error("NamingException",e);
