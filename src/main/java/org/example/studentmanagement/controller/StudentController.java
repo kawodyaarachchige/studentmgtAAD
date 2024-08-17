@@ -11,6 +11,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.example.studentmanagement.dto.StudentDTO;
 import org.example.studentmanagement.persistance.impl.StudentDAOImpl;
 import org.example.studentmanagement.utill.GenerateId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -23,7 +25,7 @@ import java.sql.SQLException;
 
 import static java.lang.Class.forName;
 
-@WebServlet(urlPatterns = "/student")/*
+@WebServlet(urlPatterns = "/student",loadOnStartup = 2)/*
 initParams =
         {
                 @WebInitParam(name = "driver-class",value = "com.mysql.cj.jdbc.Driver"),
@@ -33,7 +35,7 @@ initParams =
         })*/
 
 public class StudentController  extends HttpServlet {
-
+    static Logger logger = LoggerFactory.getLogger(StudentController.class);
     Connection connection;
     static String SAVE_STUDENT = "insert into student(id,name,email,city,level) values(?,?,?,?,?)";
     static String GET_STUDENTS = "select * from student where id=?";
@@ -42,6 +44,7 @@ public class StudentController  extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
+        logger.info("initializing student controller with call init method");
         try {
 
             /*var driverClass = getServletContext().getInitParameter("driver-class");
@@ -57,6 +60,7 @@ public class StudentController  extends HttpServlet {
 
           /*  Class.forName(driverClass);
             this.connection = DriverManager.getConnection(url,username,password);*/
+
             var ctx = new InitialContext();
             DataSource pool =(DataSource) ctx.lookup("java:/comp/env/jdbc/AADstmgt");
             this.connection = pool.getConnection();
